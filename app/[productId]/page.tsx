@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/sample-data";
 import Reviews from "@/components/reviews";
 import { Metadata } from "next";
+import { AIReviewSummary } from "@/components/ai-review-summary";
 
 const ProductPage = async ({
   params,
@@ -27,7 +28,8 @@ const ProductPage = async ({
             {product?.description}
           </p>
         </div>
-
+        {/* AI Summary */}
+        <AIReviewSummary product={product} />
         {/* Reviews */}
         <Reviews product={product} />
       </div>
