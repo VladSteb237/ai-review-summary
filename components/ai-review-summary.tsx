@@ -1,14 +1,48 @@
-import { summarizeReviews } from "@/lib/ai-summary";
+"use client";
+//import { streamReviewSummary } from "@/lib/ai-summary";
 import { Product } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { FiveStarRating } from "./five-star-rating";
+import { useState } from "react";
+import { useEffect } from "react";
 
-export async function AIReviewSummary({ product }: { product: Product }) {
-  const summary = await summarizeReviews(product);
+export function StreamingSummary({ product }: { product: Product }) {
+  const [summary, setSummary] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const averageRating =
     product.reviews.reduce((acc, review) => acc + review.stars, 0) /
     product.reviews.length;
+
+  useEffect(() => {
+    async function fetchStream() {
+      setIsLoading(true);
+      setSummary("");
+      try {
+        const response = await fetch(`/api/summary/${product.slug}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        if (!reader) {
+          throw new Error("No reader available");
+        }
+        setIsLoading(false);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          setSummary((prevSummary) => prevSummary + chunk);
+        }
+      } catch (error) {
+        console.log("Error fetching stream:", error);
+        setSummary("Failed to fetch summary. Please try again later.");
+        setIsLoading(false);
+      }
+    }
+    fetchStream();
+  }, [product.slug]);
 
   return (
     <Card className="w-full max-w-prose p-10 grid gap-10">
@@ -28,7 +62,11 @@ export async function AIReviewSummary({ product }: { product: Product }) {
       </CardHeader>
       <CardContent className="p-0 grid gap-4">
         <p className="text-sm leading-loose text-gray-500 dark:text-gray-400">
-          {summary}
+          {isLoading ? (
+            <span className="animate-pulse">Generating summary...</span>
+          ) : (
+            summary
+          )}
         </p>
       </CardContent>
     </Card>

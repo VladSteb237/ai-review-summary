@@ -1,7 +1,7 @@
-import { generateText } from "ai";
+import { streamText } from "ai";
 import { Product } from "./types";
 
-export async function summarizeReviews(product: Product): Promise<string> {
+export async function streamReviewSummary(product: Product) {
   const averageRating =
     product.reviews.reduce((acc, review) => acc + review.stars, 0) /
     product.reviews.length;
@@ -36,24 +36,31 @@ ${product.reviews
   .map((review, i) => `Review ${i + 1}:\n${review.review}`)
   .join("\n\n")}`;
 
-  try {
-    const { text } = await generateText({
-      model: "anthropic/claude-sonnet-4.5",
-      prompt,
-      maxOutputTokens: 1000, // Limit output length
-      temperature: 0.75, // Balance creativity and consistency
-    });
+  // try {
+  //   const { text } = await streamText({
+  //     model: "anthropic/claude-sonnet-4.5",
+  //     prompt,
+  //     maxOutputTokens: 1000, // Limit output length
+  //     temperature: 0.75, // Balance creativity and consistency
+  //   });
 
-    // Clean up the response
-    return text
-      .trim() // Remove whitespace
-      .replace(/^"/, "") // Remove leading quote
-      .replace(/"$/, "") // Remove trailing quote
-      .replace(/[\[\(]\d+ words[\]\)]/g, ""); // Remove word counts like "(30 words)"
-  } catch (error) {
-    console.error("Failed to generate summary:", error);
-    throw new Error("Unable to generate review summary. Please try again.");
-  }
+  //   // Clean up the response
+  //   return text
+  //     .trim() // Remove whitespace
+  //     .replace(/^"/, "") // Remove leading quote
+  //     .replace(/"$/, "") // Remove trailing quote
+  //     .replace(/[\[\(]\d+ words[\]\)]/g, ""); // Remove word counts like "(30 words)"
+  // } catch (error) {
+  //   console.error("Failed to generate summary:", error);
+  //   throw new Error("Unable to generate review summary. Please try again.");
+  // }
+  const result = streamText({
+    model: "anthropic/claude-sonnet-4-5",
+    prompt,
+    maxOutputTokens: 1000,
+    temperature: 0.75,
+  });
+  return result;
 }
 
 // import { generateText } from "ai";
