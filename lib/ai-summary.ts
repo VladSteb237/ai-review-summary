@@ -1,5 +1,5 @@
-import { streamText } from "ai";
-import { Product } from "./types";
+import { generateObject, generateText, streamText } from "ai";
+import { Product, ReviewInsights, ReviewInsightsSchema } from "./types";
 
 export async function streamReviewSummary(product: Product) {
   const averageRating =
@@ -63,24 +63,55 @@ ${product.reviews
   return result;
 }
 
-// import { generateText } from "ai";
-// import { Product } from "./types";
+export async function summarizeReviews(product: Product): Promise<string> {
+  const prompt = `Summarize the following customer reviews for the ${
+    product.name
+  } product:${product.reviews.map((review) => review.review).join("\n\n")}
+Provide a concise summary of the main themes and sentiments in 2-3 sentences.`;
 
-// export async function summarizeReviews(product: Product): Promise<string> {
-//   const prompt = `Summarize the following customer reviews for the ${
-//     product.name
-//   } product:${product.reviews.map((review) => review.review).join("\n\n")}
-// Provide a concise summary of the main themes and sentiments in 2-3 sentences.`;
+  try {
+    const { text } = await generateText({
+      model: "anthropic/claude-sonnet-4.5",
+      prompt,
+    });
 
-//   try {
-//     const { text } = await generateText({
-//       model: "anthropic/claude-sonnet-4.5",
-//       prompt,
-//     });
+    return text;
+  } catch (error) {
+    console.error("Failed to generate summary:", error);
+    throw new Error("Unable to generate review summary. Please try again.");
+  }
+}
 
-//     return text;
-//   } catch (error) {
-//     console.error("Failed to generate summary:", error);
-//     throw new Error("Unable to generate review summary. Please try again.");
-//   }
-// }
+export async function getReviewInsights(
+  product: Product
+): Promise<ReviewInsights> {
+  const averageRating =
+    product.reviews.reduce((acc, review) => acc + review.stars, 0) /
+    product.reviews.length;
+
+  const prompt = `Analyze the following customer reviews for the ${
+    product.name
+  } product (average rating: ${averageRating}/5).Extract:
+1. Pros: 3-5 positive aspects customers appreciate
+2. Cons: 3-5 negative aspects or concerns mentioned
+3. Themes: 3-5 key themes that emerge across reviews
+ 
+Be specific and concise. Each item should be 3-7 words.Reviews:
+${product.reviews
+  .map(
+    (review, i) => `Review ${i + 1} (${review.stars} stars):\n${review.review}`
+  )
+  .join("\n\n")}`;
+
+  try {
+    const { object } = await generateObject({
+      model: "anthropic/claude-sonnet-4.5",
+      schema: ReviewInsightsSchema,
+      prompt,
+    });
+    return object;
+  } catch (error) {
+    console.error("Failed to get review insights:", error);
+    throw new Error("Unable to get review insights. Please try again.");
+  }
+}

@@ -3,6 +3,7 @@ import { getProduct, getProducts } from "@/lib/sample-data";
 import Reviews from "@/components/reviews";
 import { Metadata } from "next";
 import { StreamingSummary } from "@/components/ai-review-summary";
+import { ReviewInsights } from "@/components/review-insights";
 
 const ProductPage = async ({
   params,
@@ -30,6 +31,8 @@ const ProductPage = async ({
         </div>
         {/* AI Summary */}
         <StreamingSummary product={product} />
+        {/* Review Insights */}
+        <ReviewInsights product={product} />
         {/* Reviews */}
         <Reviews product={product} />
       </div>
