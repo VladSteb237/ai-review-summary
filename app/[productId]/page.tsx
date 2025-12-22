@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/sample-data";
 import Reviews from "@/components/reviews";
 import { Metadata } from "next";
-import { StreamingSummary } from "@/components/ai-review-summary";
+import { StreamingSummary } from "@/components/streaming-summary";
 import { ReviewInsights } from "@/components/review-insights";
+import { Suspense } from "react";
 
 const ProductPage = async ({
   params,
@@ -34,7 +35,9 @@ const ProductPage = async ({
         {/* Review Insights */}
         <ReviewInsights product={product} />
         {/* Reviews */}
-        <Reviews product={product} />
+        <Suspense>
+          <Reviews product={product} />
+        </Suspense>
       </div>
     </main>
   );

@@ -3,7 +3,14 @@ import { Product } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export async function ReviewInsights({ product }: { product: Product }) {
-  const insights = await getReviewInsights(product);
+  //const insights = await getReviewInsights(product);
+  let insights;
+  try {
+    insights = await getReviewInsights(product);
+  } catch (error) {
+    console.log("AI insights failed, showing fallback:", error);
+    return null;
+  }
 
   return (
     <Card className="w-full max-w-prose">
